@@ -5,7 +5,7 @@ COPY docker/manager.xml conf/Catalina/localhost/
 
 # Copy configuration and run scripts
 COPY docker/run.sh bin/
-COPY docker/*.pl /usr/local/bin/
+COPY docker/*.p[lm] /usr/local/bin/
 
 CMD ["run.sh"]
 

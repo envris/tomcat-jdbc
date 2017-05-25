@@ -111,8 +111,6 @@ along with tomcat-jdbc.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
 use warnings;
-use utf8;
-use Env;
 use File::Basename qw(dirname);
 use Cwd qw(abs_path);
 use lib dirname(abs_path $0);
@@ -156,7 +154,7 @@ my $result = generate_template($context, @resource_values);
 if (defined $result) {
     if (defined $output_file) {
         # Output to file, if filename defined
-        open(my $fh, ">:encoding(utf8)", $output_file)
+        open(my $fh, ">", $output_file)
             or die "Couldn't open file $output_file: $!";
         print $fh $result;
         close $fh;
