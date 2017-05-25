@@ -1,0 +1,27 @@
+version: '3.1'
+
+build:
+  context: ./
+  image: my-oracle-webapp:latest
+
+services:
+  app:
+    image: my-oracle-webapp:latest
+    environment:
+      MYDB_USER: "DB-Admin"
+      MYDB_HOST: "database.example.com"
+      MYDB_PORT: "1521"
+      MYDB_NAME: "MYDB"
+      MYDB_MAXACTIVE: "5000"
+      TOMCAT_ADMIN: "tomcat"
+    deploy:
+      replicas: 1
+    secrets:
+      - mydb_pass
+      - tomcat_pass
+
+secrets:
+  mydb_pass:
+    file: mydb_pass
+  tomcat_pass:
+    file: tomcat_pass
