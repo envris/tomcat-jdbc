@@ -1,10 +1,18 @@
-Base images for Tomcat applications which use JDBC database connections.
+Docker base images for Tomcat applications which use JDBC database connections.
 
 ## Supported tags and respective `Dockerfile` links
 * `7-jre7` ([7-jre7.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/master/7-jre7.Dockerfile))
 * `7-jre8` ([7-jre8.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/master/7-jre8.Dockerfile))
 * `8-jre7` ([8-jre7.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/master/8-jre7.Dockerfile))
 * `8-jre8` ([8-jre8.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/master/8-jre8.Dockerfile))
+
+## Build
+```bash
+for file in *.Dockerfile; do
+    tag=$(basename $file ".Dockerfile")
+    docker build -t "envris/tomcat-jdbc:${tag}" --file $file .
+done
+```
 
 ## Usage
 Use `envris/tomcat-jdbc` as the base image for your application's image.

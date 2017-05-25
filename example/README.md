@@ -5,12 +5,15 @@ Dummy files show where a JDBC driver JAR and the Webapp WAR files should be plac
 ## Usage
 Build the image:
 ```bash
-docker-compose build
+docker build -t my-oracle-webapp:latest .
 ```
 
 Run the container as a Docker service:
 ```bash
-docker stack deploy example
+docker stack deploy -c docker-compose.yml example
+```
+```bash
+ docker exec -it "example_app.1.$(docker se rvice ps example_app -q | head -n1)" bash
 ```
 
 ## Output
