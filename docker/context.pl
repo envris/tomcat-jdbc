@@ -187,7 +187,7 @@ sub generate_template {
         $result .= "        username=\"$resources[$i]{'user'}\"\n";
         $result .= "        password=\"$resources[$i]{'pass'}\"\n";
         $result .= "        driverClassName=\"oracle.jdbc.driver.OracleDriver\"\n";
-        $result .= "        url=\"jdbc:oracle:thin:$resources[$i]{'host'}:$resources[$i]{'port'}:$resources[$i]{'name'}\"\n";
+        $result .= "        url=\"jdbc:oracle:thin:\@$resources[$i]{'host'}:$resources[$i]{'port'}:$resources[$i]{'name'}\"\n";
         $result .= "        validationQuery=\"select 1 from dual\"\n";
         $result .= "    />\n";
     }
