@@ -25,16 +25,28 @@ FROM envris/tomcat-jdbc:8-jre7
 ```
 
 ### Configuration
-To configure each JDBC resource, set the below environment variables and secrets, replacing RESOURCE with the JDBC resource name.
+To configure each JDBC resource, set the below environment variables and secrets, replacing `RESOURCE` with the JDBC resource name.
 Multiple JDBC resources can be defined.
 
-| Name | Type | Value |
-|------|------|-------|
-| `RESOURCE_USER` | Environment Variable | DB username |
-| `RESOURCE_HOST` | Environment Variable | DB hostname |
-| `RESOURCE_PORT` | Environment Variable | DB tcp port |
-| `RESOURCE_NAME` | Environment Variable | DB instance name |
-| `resource_pass` | Docker secret | DB password |
+| Name | Type | Value | Default value |
+|------|------|-------|---------------|
+| `RESOURCE_USER` | Environment Variable | DB username | N/A |
+| `RESOURCE_HOST` | Environment Variable | DB hostname | N/A |
+| `RESOURCE_PORT` | Environment Variable | DB tcp port | N/A |
+| `RESOURCE_NAME` | Environment Variable | DB instance name | N/A |
+| `resource_pass` | Docker secret | DB password | N/A |
+| `RESOURCE_MAXACTIVE` | Environment Variable | maxActive Attribute | 10 |
+| `RESOURCE_MAXIDLE` | Environment Variable | maxIdle Attribute | 2 |
+| `RESOURCE_MAXWAIT` | Environment Variable | maxWait Attribute | 2000 |
+
+To configure Parameters, set the below environment variables for each Parameter, replacing `MYPARAM` with an identifier.
+
+| Name | Value | Mandatory |
+|------|-------|-----------|
+| `PARAM_MYPARAM_NAME` | Parameter name | Yes |
+| `PARAM_MYPARAM_VALUE` | Parameter value | Yes |
+| `PARAM_MYPARAM_DESCRIPTION` | Parameter description | No |
+| `PARAM_MYPARAM_NAME` | Parameter name | No |
 
 To configure the Tomcat Manger application, set the below environment variables and secrets.
 Omitting the `TOMCAT_ADMIN` environment variable will disable the admin user.
@@ -45,7 +57,7 @@ Omitting the `TOMCAT_ADMIN` environment variable will disable the admin user.
 | `tomcat_pass` | Docker secret | Tomcat manager password |
 
 ## Copyright
-Copyright 2017 Australian Government Department of the Environment and Energy
+Copyright 2017 Australian Government Department of the Environment and Energy  
 <devops@ris.environment.gov.au>
 
 tomcat-jdbc is free software: you can redistribute it and/or modify

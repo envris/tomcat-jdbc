@@ -8,9 +8,10 @@ Generate a Tomcat context.xml with JDBC resources from environment variables and
 
 =head1 DESCRIPTION
 
-Generates Tomcat context.xml files with any number of JDBC resources.
+Generates Tomcat context.xml files with any number of JDBC resources and Paramters.
 Each JDBC resource is defined with a set of enviroment variables and secrets files. The variables for a resource must share the same prefix.
 
+Refer to the "The Context Container" article in the Apache Tomcat manual for more details on the context.xml file.
 Refer to the "Tomcat JDBC Connection Pool" article in the Apache Tomcat manual for details on JDBC resource configuration.
 
 The program will die if a required environment variable or secret is not defined.
@@ -27,9 +28,6 @@ File path to write the context.xml file to. If this parameter isn't specified, t
 
 =head1 ENVIRONMENT VARIABLES
 
-Environment variables are always UPPERCASE.
-RESOURCE should be replaced with the name of the resource, without the leading 'jdbc/'.
-
 =over
 
 =item CONTEXT
@@ -39,6 +37,15 @@ The context path of the Web Application.
 =item SECRETS_DIR
 
 Optional. Path to the directory containing secrets files, without trailing slash. Defaults to C</run/secrets>
+
+=back
+
+=head2 RESOURCE ENVIRONMENT VARIABLES
+
+RESOURCE should be replaced with the name of the resource, without the leading 'jdbc/'.
+Resource names starting with PARAM_ will be ignored.
+
+=over
 
 =item RESOURCE_USER
 
@@ -67,6 +74,30 @@ Optional. maxIdle configuration value
 =item RESOURCE_MAXWAIT
 
 Optional. maxWait configuration value
+
+=back
+
+=head2 PARAMETER ENVIRONMENT VARIABLES
+
+MYPARAM should be replaced with an identifier for that parameter
+
+=over
+
+=item PARAM_MYPARAM_NAME
+
+Name of the Parameter
+
+=item PARAM_MYPARAM_VALUE
+
+Value of the Parameter
+
+=item PARAM_MYPARAM_DESCRIPTION
+
+Optional. Human-readable description of the Parameter
+
+=item PARAM_MYPARAM_OVERRIDE
+
+Optional. Set this to false if you do not want a <context-param> for the same parameter name.
 
 =back
 
@@ -125,8 +156,8 @@ my $secrets_dir = get_env_var('', 'SECRETS_DIR', '/run/secrets');
 
 my $context = get_env_var('', 'CONTEXT');
 
-# Find all the defined resources
-my @resources = map /([\w]+)_USER$/, keys %ENV;
+# Find all the defined resources.
+my @resources = map /^((?!PARAM)[\w]+)_NAME$/, keys %ENV;
 if (scalar @resources == 0) {
     die "No JDBC Resources defined";
 }
@@ -150,7 +181,22 @@ foreach my $resource (@resources) {
     };
 }
 
-my $result = generate_template($context, @resource_values);
+# Find all the defined parameters
+my @parameters = map /^PARAM_([\w]+)_NAME$/, keys %ENV;
+# Array of hashes with details of each Parameter
+my @parameter_values;
+
+# Add each value to a hash, then add to @parameter_values
+foreach my $parameter (@parameters) {
+    push @parameter_values, {
+        name => get_env_var('PARAM_' . $parameter, 'NAME'),
+        value => get_env_var('PARAM_' . $parameter, 'VALUE'),
+        description => get_env_var('PARAM_' . $parameter, 'DESCRIPTION', ''),
+        override => get_env_var('PARAM_' . $parameter, 'OVERRIDE', ''),
+    };
+}
+
+my $result = generate_template($context, \@resource_values, \@parameter_values);
 if (defined $result) {
     if (defined $output_file) {
         # Output to file, if filename defined
@@ -170,13 +216,17 @@ if (defined $result) {
 sub generate_template {
     my (
         $context,    # Context path
-        @resources  # Array of hashes
+        $resources_ref,     # Array of resource hashes, passed by reference
+        $parameters_ref,    # Array of parameter hashes, passed by reference
     ) = @_;
+    # Dereference arrays
+    my @resources = @{ $resources_ref };
+    my @parameters = @{ $parameters_ref };
 
     my $result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     $result .= "<Context path=\"/$context\">\n";
 
-    for my $i (0..$#resources) {# Loop over array of hashes
+    for my $i (0..$#resources) { # Loop over array of hashes
         # Interpolate template with values in hash
         $result .= "    <Resource name=\"jdbc/$resources[$i]{'resource'}\"\n";
         $result .= "        auth=\"Container\"\n";
@@ -191,6 +241,19 @@ sub generate_template {
         $result .= "        validationQuery=\"select 1 from dual\"\n";
         $result .= "    />\n";
     }
+
+    for my $j (0..$#parameters) {
+        $result .= "    <Parameter name=\"$parameters[$j]{'name'}\"\n";
+        if ($parameters[$j]{'description'} ne '') {
+            $result .= "        description=\"$parameters[$j]{'description'}\"\n";
+        }
+        $result .= "        value=\"$parameters[$j]{'value'}\"\n";
+        if ($parameters[$j]{'override'} ne '') {
+            $result .= "        override=\"$parameters[$j]{'override'}\"\n";
+        }
+        $result .= "    />\n";
+    }
+
     $result .= "</Context>\n";
 
     return $result;
