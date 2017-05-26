@@ -25,19 +25,20 @@ FROM envris/tomcat-jdbc:8-jre7
 ```
 
 ### Configuration
-To configure each JDBC resource, set the below environment variables and secrets, replacing `RESOURCE` with the JDBC resource name.
+To configure each JDBC resource, set the below environment variables and secrets, replacing `MYRESOURCE` with an identifier for that JDBC resource.
 Multiple JDBC resources can be defined.
 
 | Name | Type | Value | Default value |
 |------|------|-------|---------------|
-| `RESOURCE_USER` | Environment Variable | DB username | N/A |
-| `RESOURCE_HOST` | Environment Variable | DB hostname | N/A |
-| `RESOURCE_PORT` | Environment Variable | DB tcp port | N/A |
-| `RESOURCE_NAME` | Environment Variable | DB instance name | N/A |
-| `resource_pass` | Docker secret | DB password | N/A |
-| `RESOURCE_MAXACTIVE` | Environment Variable | maxActive Attribute | 10 |
-| `RESOURCE_MAXIDLE` | Environment Variable | maxIdle Attribute | 2 |
-| `RESOURCE_MAXWAIT` | Environment Variable | maxWait Attribute | 2000 |
+| `MYRESOURCE_RESOURCE` | Environment Variable | Name of the JDBC Resource | N/A |
+| `MYRESOURCE_USER` | Environment Variable | DB username | N/A |
+| `MYRESOURCE_HOST` | Environment Variable | DB hostname | N/A |
+| `MYRESOURCE_PORT` | Environment Variable | DB tcp port | N/A |
+| `MYRESOURCE_NAME` | Environment Variable | DB instance name | N/A |
+| `myresource_pass` | Docker secret | DB password | N/A |
+| `MYRESOURCE_MAXACTIVE` | Environment Variable | maxActive Attribute | 10 |
+| `MYRESOURCE_MAXIDLE` | Environment Variable | maxIdle Attribute | 2 |
+| `MYRESOURCE_MAXWAIT` | Environment Variable | maxWait Attribute | 2000 |
 
 To configure Parameters, set the below environment variables for each Parameter, replacing `MYPARAM` with an identifier.
 

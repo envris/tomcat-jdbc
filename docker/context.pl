@@ -42,36 +42,40 @@ Optional. Path to the directory containing secrets files, without trailing slash
 
 =head2 RESOURCE ENVIRONMENT VARIABLES
 
-RESOURCE should be replaced with the name of the resource, without the leading 'jdbc/'.
+MYRESOURCE should be replaced with an identifier for that JDBC resource.
 Resource names starting with PARAM_ will be ignored.
 
 =over
 
-=item RESOURCE_USER
+=item MYRESOURCE_RESOURCE
+
+Name of the JDBC Resource, without the leading 'jdbc/'
+
+=item MYRESOURCE_USER
 
 Username for the JDBC connection
 
-=item RESOURCE_HOST
+=item MYRESOURCE_HOST
 
 Hostname for the JDBC connection - part of the url
 
-=item RESOURCE_PORT
+=item MYRESOURCE_PORT
 
 Port number for the JDBC connection - part of the url
 
-=item RESOURCE_NAME
+=item MYRESOURCE_NAME
 
 Instance name for the JDBC connection - part of the url
 
-=item RESOURCE_MAXACTIVE
+=item MYRESOURCE_MAXACTIVE
 
 Optional. maxActive configuration value
 
-=item RESOURCE_MAXIDLE
+=item MYRESOURCE_MAXIDLE
 
 Optional. maxIdle configuration value
 
-=item RESOURCE_MAXWAIT
+=item MYRESOURCE_MAXWAIT
 
 Optional. maxWait configuration value
 
@@ -79,7 +83,7 @@ Optional. maxWait configuration value
 
 =head2 PARAMETER ENVIRONMENT VARIABLES
 
-MYPARAM should be replaced with an identifier for that parameter
+MYPARAM should be replaced with an identifier for that parameter.
 
 =over
 
@@ -108,7 +112,7 @@ Docker secrets is where secrets are expected to come from.
 
 =over
 
-=item resource_pass
+=item myresource_pass
 
 Password for the JDBC connection
 
@@ -157,7 +161,7 @@ my $secrets_dir = get_env_var('', 'SECRETS_DIR', '/run/secrets');
 my $context = get_env_var('', 'CONTEXT');
 
 # Find all the defined resources.
-my @resources = map /^((?!PARAM)[\w]+)_NAME$/, keys %ENV;
+my @resources = map /^((?!PARAM)[\w]+)_RESOURCE$/, keys %ENV;
 if (scalar @resources == 0) {
     die "No JDBC Resources defined";
 }
@@ -167,7 +171,7 @@ my @resource_values;
 # Add each value to a hash, then add to @resource_values
 foreach my $resource (@resources) {
     push @resource_values, {
-        resource => $resource,
+        resource => get_env_var($resource, 'RESOURCE'),
         user => get_env_var($resource, 'USER'),
         host => get_env_var($resource, 'HOST'),
         port => get_env_var($resource, 'PORT'),
