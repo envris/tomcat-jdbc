@@ -28,10 +28,14 @@ FROM envris/tomcat-jdbc:8-jre7
 To configure each JDBC resource, set the below environment variables and secrets, replacing `MYRESOURCE` with an identifier for that JDBC resource.
 Multiple JDBC resources can be defined.
 
+For each JDBC resource, you must specify `RESOURCE` and either `URL` _or_ `HOST`, `PORT`, `NAME` and (optionally) `DRIVER`.
+
 | Name | Type | Value | Default value |
 |------|------|-------|---------------|
 | `MYRESOURCE_RESOURCE` | Environment Variable | Name of the JDBC Resource | N/A |
 | `MYRESOURCE_USER` | Environment Variable | DB username | N/A |
+| `MYRESOURCE_URL` | Environment Variable | JDBC URL | N/A |
+| `MYRESOURCE_DRIVER` | Environment Variable | DB JDBC Driver | oraclethin |
 | `MYRESOURCE_HOST` | Environment Variable | DB hostname | N/A |
 | `MYRESOURCE_PORT` | Environment Variable | DB tcp port | N/A |
 | `MYRESOURCE_NAME` | Environment Variable | DB instance name | N/A |

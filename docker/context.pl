@@ -36,7 +36,8 @@ The context path of the Web Application.
 
 =item SECRETS_DIR
 
-Optional. Path to the directory containing secrets files, without trailing slash. Defaults to C</run/secrets>
+Path to the directory containing secrets files, without trailing slash.
+Optional. Defaults value: C</run/secrets>
 
 =back
 
@@ -50,34 +51,53 @@ Resource names starting with PARAM_ will be ignored.
 =item MYRESOURCE_RESOURCE
 
 Name of the JDBC Resource, without the leading 'jdbc/'
+Mandatory.
 
 =item MYRESOURCE_USER
 
 Username for the JDBC connection
+Mandatory.
+
+=item MYRESOURCE_URL
+
+The JDBC URL.
+If not set; HOST, PORT and NAME must be set.
+
+=item MYRESOURCE_DRIVER
+
+Type of database for the JDBC connections.
+Optional. Default value: oraclethin
+Value must be one of: mssql mysql oracleoci oraclethin
 
 =item MYRESOURCE_HOST
 
 Hostname for the JDBC connection - part of the url
+Ignored if URL is set.
 
 =item MYRESOURCE_PORT
 
 Port number for the JDBC connection - part of the url
+Ignored if URL is set.
 
 =item MYRESOURCE_NAME
 
-Instance name for the JDBC connection - part of the url
+Instance or database name for the JDBC connection - part of the url
+Ignored if URL is set.
 
 =item MYRESOURCE_MAXACTIVE
 
-Optional. maxActive configuration value
+maxActive configuration value
+Optional. Default value: 10
 
 =item MYRESOURCE_MAXIDLE
 
-Optional. maxIdle configuration value
+maxIdle configuration value
+Optional. Default value: 2
 
 =item MYRESOURCE_MAXWAIT
 
-Optional. maxWait configuration value
+maxWait configuration value
+Optional. Default value: 2000
 
 =back
 
@@ -97,11 +117,13 @@ Value of the Parameter
 
 =item PARAM_MYPARAM_DESCRIPTION
 
-Optional. Human-readable description of the Parameter
+Human-readable description of the Parameter
+Optional.
 
 =item PARAM_MYPARAM_OVERRIDE
 
-Optional. Set this to false if you do not want a <context-param> for the same parameter name.
+Set this to false if you do not want a <context-param> for the same parameter name.
+Optional.
 
 =back
 
@@ -151,6 +173,22 @@ use Cwd qw(abs_path);
 use lib dirname(abs_path $0);
 use TomcatContextUtil qw(get_env_var get_secret);
 
+# JDBC driver class names
+my %driverclasses = (
+    mssql => "com.microsoft.jdbc.sqlserver.SQLServerDriver",
+    mysql => "",
+    oracleoci => "oracle.jdbc.OracleDriver",
+    oraclethin => "oracle.jdbc.driver.OracleDriver",
+);
+
+# JDBC validation queries
+my %validations = (
+    mssql => "select 1",
+    mysql => "select 1",
+    oracleoci => "select 1 from dual",
+    oraclethin => "select 1 from dual",
+);
+
 # Set output filename to first argument.
 # Omit the argument to output to Standard Output.
 my $output_file = $ARGV[0];
@@ -170,12 +208,41 @@ my @resource_values;
 
 # Add each value to a hash, then add to @resource_values
 foreach my $resource (@resources) {
+
+    my $url = get_env_var($resource, 'URL', '-1');
+    my $driver;
+
+    # If environment variable MYRESOURCE_URL was set
+    if ($url ne '-1') {
+        # Detect the driver type
+        if ($url =~ /oracle:thin/) {
+            $driver = 'oraclethin';
+        } else {
+            die "Unable to detect driver for JDBC URL $url";
+        }
+    } else {
+        # Construct the JDBC URL
+        $driver = lc(get_env_var($resource, 'DRIVER', 'oraclethin'));
+
+        if ($driver eq 'oraclethin') {
+            $url = "jdbc:oracle:thin\@${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')}:${\get_env_var($resource, 'NAME')}";
+        } elsif ($driver eq 'oracleoci') {
+            $url = "jdbc:oracle:oci\@${\get_env_var($resource, 'NAME')}";
+        } elsif ($driver eq 'mysql') {
+            $url = "jdbc:mysql://${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')}/${\get_env_var($resource, 'NAME')}";
+        } elsif ($driver eq 'mssql') {
+            $url = "jdbc:microsoft:sqlserver://${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')};databaseName=${\get_env_var($resource, 'NAME')}";
+        } else {
+            die "Unsupported driver specified for resource $resource";
+        }
+    }
+
     push @resource_values, {
         resource => get_env_var($resource, 'RESOURCE'),
         user => get_env_var($resource, 'USER'),
-        host => get_env_var($resource, 'HOST'),
-        port => get_env_var($resource, 'PORT'),
-        name => get_env_var($resource, 'NAME'),
+        url => $url,
+        driverclass => $driverclasses{$driver},
+        validation => $validations{$driver},
 
         maxactive => get_env_var($resource, 'MAXACTIVE', '10'),
         maxidle => get_env_var($resource, 'MAXIDLE', '2'),
@@ -240,9 +307,9 @@ sub generate_template {
         $result .= "        maxWait=\"$resources[$i]{'maxwait'}\"\n";
         $result .= "        username=\"$resources[$i]{'user'}\"\n";
         $result .= "        password=\"$resources[$i]{'pass'}\"\n";
-        $result .= "        driverClassName=\"oracle.jdbc.driver.OracleDriver\"\n";
-        $result .= "        url=\"jdbc:oracle:thin:\@$resources[$i]{'host'}:$resources[$i]{'port'}:$resources[$i]{'name'}\"\n";
-        $result .= "        validationQuery=\"select 1 from dual\"\n";
+        $result .= "        driverClassName=\"$resources[$i]{'driverclass'}\"\n";
+        $result .= "        url=\"$resources[$i]{'url'}\"\n";
+        $result .= "        validationQuery=\"$resources[$i]{'validation'}\"\n";
         $result .= "    />\n";
     }
 

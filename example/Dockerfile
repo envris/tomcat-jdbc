@@ -1,4 +1,4 @@
-FROM envris/tomcat-jdbc:8-jre8
+FROM envris/tomcat-jdbc:8-jre8-0.2.0
 
 # Modify run.sh to do everything except start Tomcat.
 # Don't include any of this for a production application.

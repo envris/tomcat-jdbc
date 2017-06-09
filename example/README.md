@@ -39,7 +39,7 @@ Path: `/usr/local/tomcat/conf/tomcat-users.xml`
 Path: `/usr/local/tomcat/conf/Catalina/localhost/oracle-webapp.xml`
 
 ```bash
- docker exec -it "example_app.1.$(docker service ps example_app -q | head -n1)" cat conf/Catalina/localhost/oracle-webapp.xml
+docker exec -it $(docker ps --filter="name=example_app" --format "{{.Names}}") cat conf/Catalina/localhost/oracle-webapp.xml
 ```
 
 ```xml

@@ -4,6 +4,7 @@ services:
   app:
     image: my-oracle-webapp:latest
     environment:
+      MYDB_RESOURCE: "MYDB"
       MYDB_USER: "DB-Admin"
       MYDB_HOST: "database.example.com"
       MYDB_PORT: "1521"
