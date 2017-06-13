@@ -35,8 +35,8 @@ diff <($SCRIPT) <(cat <<EOF
         maxWait="2000"
         username="DB-Admin"
         password="pass"
-        driverClassName="oracle.jdbc.driver.OracleDriver"
-        url="jdbc:oracle:thin@database.example.com:1521:MYDB"
+        driverClassName="oracle.jdbc.OracleDriver"
+        url="jdbc:oracle:thin:@database.example.com:1521:MYDB"
         validationQuery="select 1 from dual"
     />
 </Context>
@@ -101,7 +101,7 @@ diff <($SCRIPT) <(cat <<EOF
         maxWait="2000"
         username="DB-Admin"
         password="pass"
-        driverClassName="oracle.jdbc.driver.OracleDriver"
+        driverClassName="oracle.jdbc.OracleDriver"
         url="jdbc:oracle:thin:@(DESCRIPTION=(FAILOVER=ON)(ADDRESS=(PROTOCOL=TCP)(HOST=db01.example.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=db02.example.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=INSTANCE.example.com)))"
         validationQuery="select 1 from dual"
     />

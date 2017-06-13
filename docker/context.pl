@@ -178,7 +178,7 @@ my %driverclasses = (
     mssql => "com.microsoft.jdbc.sqlserver.SQLServerDriver",
     mysql => "",
     oracleoci => "oracle.jdbc.OracleDriver",
-    oraclethin => "oracle.jdbc.driver.OracleDriver",
+    oraclethin => "oracle.jdbc.OracleDriver",
 );
 
 # JDBC validation queries
