@@ -225,9 +225,9 @@ foreach my $resource (@resources) {
         $driver = lc(get_env_var($resource, 'DRIVER', 'oraclethin'));
 
         if ($driver eq 'oraclethin') {
-            $url = "jdbc:oracle:thin\@${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')}:${\get_env_var($resource, 'NAME')}";
+            $url = "jdbc:oracle:thin:\@${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')}:${\get_env_var($resource, 'NAME')}";
         } elsif ($driver eq 'oracleoci') {
-            $url = "jdbc:oracle:oci\@${\get_env_var($resource, 'NAME')}";
+            $url = "jdbc:oracle:oci:\@${\get_env_var($resource, 'NAME')}";
         } elsif ($driver eq 'mysql') {
             $url = "jdbc:mysql://${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')}/${\get_env_var($resource, 'NAME')}";
         } elsif ($driver eq 'mssql') {
