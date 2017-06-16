@@ -172,6 +172,7 @@ use File::Basename qw(dirname);
 use Cwd qw(abs_path);
 use lib dirname(abs_path $0);
 use TomcatContextUtil qw(get_env_var get_secret);
+use Text::Template;
 
 # JDBC driver class names
 my %driverclasses = (
@@ -192,6 +193,9 @@ my %validations = (
 # Set output filename to first argument.
 # Omit the argument to output to Standard Output.
 my $output_file = $ARGV[0];
+
+# TODO: Set this a better way
+my $template_file = dirname(abs_path $0) . '/context.xml.template';
 
 # Path to secrets directory. No trailing slash!
 my $secrets_dir = get_env_var('', 'SECRETS_DIR', '/run/secrets');
@@ -267,7 +271,14 @@ foreach my $parameter (@parameters) {
     };
 }
 
-my $result = generate_template($context, \@resource_values, \@parameter_values);
+my %vars = (
+    context => \$context,
+    resources => \@resource_values,
+    parameters => \@parameter_values,
+); 
+
+my $result = Text::Template::fill_in_file($template_file, HASH => \%vars);
+
 if (defined $result) {
     if (defined $output_file) {
         # Output to file, if filename defined
@@ -281,51 +292,4 @@ if (defined $result) {
     }
 } else {
     die "Couldn't fill in template: $!";
-}
-
-# Return a string containing the output context.xml file
-sub generate_template {
-    my (
-        $context,    # Context path
-        $resources_ref,     # Array of resource hashes, passed by reference
-        $parameters_ref,    # Array of parameter hashes, passed by reference
-    ) = @_;
-    # Dereference arrays
-    my @resources = @{ $resources_ref };
-    my @parameters = @{ $parameters_ref };
-
-    my $result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    $result .= "<Context path=\"/$context\">\n";
-
-    for my $i (0..$#resources) { # Loop over array of hashes
-        # Interpolate template with values in hash
-        $result .= "    <Resource name=\"jdbc/$resources[$i]{'resource'}\"\n";
-        $result .= "        auth=\"Container\"\n";
-        $result .= "        type=\"javax.sql.DataSource\"\n";
-        $result .= "        maxActive=\"$resources[$i]{'maxactive'}\"\n";
-        $result .= "        maxIdle=\"$resources[$i]{'maxidle'}\"\n";
-        $result .= "        maxWait=\"$resources[$i]{'maxwait'}\"\n";
-        $result .= "        username=\"$resources[$i]{'user'}\"\n";
-        $result .= "        password=\"$resources[$i]{'pass'}\"\n";
-        $result .= "        driverClassName=\"$resources[$i]{'driverclass'}\"\n";
-        $result .= "        url=\"$resources[$i]{'url'}\"\n";
-        $result .= "        validationQuery=\"$resources[$i]{'validation'}\"\n";
-        $result .= "    />\n";
-    }
-
-    for my $j (0..$#parameters) {
-        $result .= "    <Parameter name=\"$parameters[$j]{'name'}\"\n";
-        if ($parameters[$j]{'description'} ne '') {
-            $result .= "        description=\"$parameters[$j]{'description'}\"\n";
-        }
-        $result .= "        value=\"$parameters[$j]{'value'}\"\n";
-        if ($parameters[$j]{'override'} ne '') {
-            $result .= "        override=\"$parameters[$j]{'override'}\"\n";
-        }
-        $result .= "    />\n";
-    }
-
-    $result .= "</Context>\n";
-
-    return $result;
 }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/{$context}">
+{   foreach my $r (@resources) {
+        $OUT .= "    <Resource name=\"jdbc/$r->{'resource'}\"\n";
+        $OUT .= "        auth=\"Container\"\n";
+        $OUT .= "        type=\"javax.sql.DataSource\"\n";
+        $OUT .= "        maxActive=\"$r->{'maxactive'}\"\n";
+        $OUT .= "        maxIdle=\"$r->{'maxidle'}\"\n";
+        $OUT .= "        maxWait=\"$r->{'maxwait'}\"\n";
+        $OUT .= "        username=\"$r->{'user'}\"\n";
+        $OUT .= "        password=\"$r->{'pass'}\"\n";
+        $OUT .= "        driverClassName=\"$r->{'driverclass'}\"\n";
+        $OUT .= "        url=\"$r->{'url'}\"\n";
+        $OUT .= "        validationQuery=\"$r->{'validation'}\"\n";
+        $OUT .= "    />";
+    }
+}
+{   foreach my $p (@parameters) {
+        $OUT .= "    <Parameter name=\"$p->{'name'}\"\n";
+        if ($p->{'description'} ne '') {
+            $OUT .= "        description=\"$p->{'description'}\"\n";
+        }
+        $OUT .= "        value=\"$p->{'value'}\"\n";
+        if ($p->{'override'} ne '') {
+            $OUT .= "        override=\"$p->{'override'}\"\n";
+        }
+        $OUT .= "    />";
+    }
+}
+</Context>
