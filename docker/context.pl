@@ -221,6 +221,12 @@ foreach my $resource (@resources) {
         # Detect the driver type
         if ($url =~ /oracle:thin/) {
             $driver = 'oraclethin';
+        } elsif ($url =~ /oracle:oci/) {
+            $driver = 'oracleoci';
+        } elsif ($url =~ /mysql/) {
+            $driver = 'mysql';
+        } elsif ($url =~ /microsoft:sqlserver/) {
+            $driver = 'mssql';
         } else {
             die "Unable to detect driver for JDBC URL $url";
         }
