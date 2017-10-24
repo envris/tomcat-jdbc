@@ -4,8 +4,7 @@ FROM tomcat:8-jre7
 COPY docker/manager.xml conf/Catalina/localhost/
 
 # Copy configuration and run scripts
-COPY docker/run.sh bin/
-COPY docker/*.p[lm] /usr/local/bin/
+COPY ["docker/*.p[lm]", "docker/*.template", "docker/run.sh", "/usr/local/bin/"]
 
 CMD ["run.sh"]
 
