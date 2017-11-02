@@ -1,4 +1,8 @@
-FROM tomcat:7-jre7
+FROM tomcat:8-jre7-alpine
+
+RUN  apk update \
+  && apk add --no-cache \
+     perl-text-template
 
 # Copy tomcat manager application configuration
 COPY docker/manager.xml conf/Catalina/localhost/
