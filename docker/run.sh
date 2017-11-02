@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eo pipefail
-export CONTEXT=$(basename -s .war $(ls webapps/*.war | head -n 1))
+export CONTEXT="$(basename $(ls webapps/*.war | head -n 1) .war)"
 
 # Redirect root path to application path
 echo "<% response.sendRedirect(\"/$CONTEXT\"); %>" \

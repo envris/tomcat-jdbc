@@ -1,10 +1,14 @@
-Docker base images for Tomcat applications which use JDBC database connections.
+Docker base images for Tomcat applications which use JDBC database connections. Alpine versions are less than half the size of standard images but have virtually no packages installed and use busybox instead of bash. 
 
 ## Supported tags and respective `Dockerfile` links
 * `7-jre7` ([7-jre7.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/master/7-jre7.Dockerfile))
+* `7-jre7-alpine` ([7-jre7-alpine.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/alpine/7-jre7-alpine.Dockerfile))
 * `7-jre8` ([7-jre8.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/master/7-jre8.Dockerfile))
+* `7-jre8-alpine` ([7-jre8-alpine.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/-alpine/7-jre8-alpine.Dockerfile))
 * `8-jre7` ([8-jre7.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/master/8-jre7.Dockerfile))
+* `8-jre7-alpine` ([8-jre7-alpine.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/-alpine/8-jre7-alpine.Dockerfile))
 * `8-jre8` ([8-jre8.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/master/8-jre8.Dockerfile))
+* `8-jre8-alpine` ([8-jre8-alpine.Dockerfile](http://github.com/envris/tomcat-jdbc/blob/-alpine/8-jre8-alpine.Dockerfile))
 
 ## Build
 ```bash
