@@ -39,6 +39,11 @@ The context path of the Web Application.
 Path to the directory containing secrets files, without trailing slash.
 Optional. Defaults value: C</run/secrets>
 
+=item RESOURCES_DIR
+
+Path to the directory containing resource subdirectories, without trailing slash.
+Optional.
+
 =back
 
 =head2 RESOURCE ENVIRONMENT VARIABLES
@@ -169,26 +174,11 @@ along with tomcat-jdbc.  If not, see <http://www.gnu.org/licenses/>.
 use strict;
 use warnings;
 use File::Basename qw(dirname);
+use File::Spec::Functions 'catfile';
 use Cwd qw(abs_path);
 use lib dirname(abs_path $0);
-use TomcatContextUtil qw(get_env_var get_secret);
+use TomcatContextUtil qw(get_env_var get_secret get_resource_file get_resource);
 use Text::Template;
-
-# JDBC driver class names
-my %driverclasses = (
-    mssql => "com.microsoft.jdbc.sqlserver.SQLServerDriver",
-    mysql => "",
-    oracleoci => "oracle.jdbc.OracleDriver",
-    oraclethin => "oracle.jdbc.OracleDriver",
-);
-
-# JDBC validation queries
-my %validations = (
-    mssql => "select 1",
-    mysql => "select 1",
-    oracleoci => "select 1 from dual",
-    oraclethin => "select 1 from dual",
-);
 
 # Set output filename to first argument.
 # Omit the argument to output to Standard Output.
@@ -202,64 +192,40 @@ my $secrets_dir = get_env_var('', 'SECRETS_DIR', '/run/secrets');
 
 my $context = get_env_var('', 'CONTEXT');
 
-# Find all the defined resources.
-my @resources = map /^((?!PARAM)[\w]+)_RESOURCE$/, keys %ENV;
-if (scalar @resources == 0) {
-    die "No JDBC Resources defined";
-}
 # Array of hashes with details of each JDBC resource
 my @resource_values;
 
+# Find all the defined resources from environment variables.
+my @env_resources = map /^((?!PARAM)[\w]+)_RESOURCE$/, keys %ENV;
+
 # Add each value to a hash, then add to @resource_values
-foreach my $resource (@resources) {
+foreach my $resource (@env_resources) {
+    push @resource_values, get_resource($resource, \&get_env_var, get_secret(lc($resource), 'pass', $secrets_dir));
+}
 
-    my $url = get_env_var($resource, 'URL', '-1');
-    my $driver;
+#If RESOURCE_DIR is set, also load resources for each subdirectory
+if (exists $ENV{'RESOURCE_DIR'}) {
+    # Path to resource directory. No trailing slash!
+    my $resource_dir = $ENV{'RESOURCE_DIR'};
 
-    # If environment variable MYRESOURCE_URL was set
-    if ($url ne '-1') {
-        # Detect the driver type
-        if ($url =~ /oracle:thin/) {
-            $driver = 'oraclethin';
-        } elsif ($url =~ /oracle:oci/) {
-            $driver = 'oracleoci';
-        } elsif ($url =~ /mysql/) {
-            $driver = 'mysql';
-        } elsif ($url =~ /microsoft:sqlserver/) {
-            $driver = 'mssql';
-        } else {
-            die "Unable to detect driver for JDBC URL $url";
-        }
-    } else {
-        # Construct the JDBC URL
-        $driver = lc(get_env_var($resource, 'DRIVER', 'oraclethin'));
+    opendir(my $dh, $resource_dir) || die "Can't open resource dir $resource_dir : $!";
 
-        if ($driver eq 'oraclethin') {
-            $url = "jdbc:oracle:thin:\@${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')}:${\get_env_var($resource, 'NAME')}";
-        } elsif ($driver eq 'oracleoci') {
-            $url = "jdbc:oracle:oci:\@${\get_env_var($resource, 'NAME')}";
-        } elsif ($driver eq 'mysql') {
-            $url = "jdbc:mysql://${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')}/${\get_env_var($resource, 'NAME')}";
-        } elsif ($driver eq 'mssql') {
-            $url = "jdbc:microsoft:sqlserver://${\get_env_var($resource, 'HOST')}:${\get_env_var($resource, 'PORT')};databaseName=${\get_env_var($resource, 'NAME')}";
-        } else {
-            die "Unsupported driver specified for resource $resource";
-        }
+    while( my $resource = readdir $dh ) {
+        my $path = catfile($resource_dir, $resource);
+
+        # Only read subdirectories
+        next unless -d $path;
+        # Ignore parent/self links
+        next if $resource eq '.' or $resource eq '..';
+
+        push @resource_values, get_resource($resource, \&get_resource_file, get_resource_file($path, 'password'), $path);
     }
 
-    push @resource_values, {
-        resource => get_env_var($resource, 'RESOURCE'),
-        user => get_env_var($resource, 'USER'),
-        url => $url,
-        driverclass => $driverclasses{$driver},
-        validation => $validations{$driver},
+    closedir($dh)
+}
 
-        maxactive => get_env_var($resource, 'MAXACTIVE', '10'),
-        maxidle => get_env_var($resource, 'MAXIDLE', '2'),
-        maxwait => get_env_var($resource, 'MAXWAIT', '2000'),
-
-        pass => get_secret(lc($resource), 'pass', $secrets_dir),
-    };
+if (scalar @resource_values == 0) {
+    die "No JDBC Resources defined";
 }
 
 # Find all the defined parameters
