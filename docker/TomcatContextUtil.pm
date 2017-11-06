@@ -62,6 +62,7 @@ The default value to return. Omit to treat this secret as non-optional.
 =back
 
 =head1 get_resource
+
 Return the data for a JDBC resource.
 Fetch data using the supplied method (e.g. reading environment vars or files).
 
