@@ -1,7 +1,7 @@
 #!/bin/bash
 # Test docker/context.pl
 
-#set -eo pipefail
+set -eo pipefail
 
 SCRIPT="$(dirname $0)/../docker/context.pl"
 DIFF="git diff --no-index --color-words=."

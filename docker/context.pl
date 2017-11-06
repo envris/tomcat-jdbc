@@ -179,7 +179,6 @@ use Cwd qw(abs_path);
 use lib dirname(abs_path $0);
 use TomcatContextUtil qw(get_env_var get_secret get_resource_file get_resource);
 use Text::Template;
-use File::Slurp qw(read_file);
 
 # Set output filename to first argument.
 # Omit the argument to output to Standard Output.

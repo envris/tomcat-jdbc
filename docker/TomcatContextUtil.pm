@@ -235,7 +235,7 @@ sub get_resource {
         $resource,       # Name of the resource
         $read_resource,  # Reference to method for fetching data, see get_env_var or get_resource_file
         $password,       # Password for the resource
-        $reference       # Reference to resource id/location, to be passed to read_resource method.
+        $ref             # Reference to resource id/location, to be passed to read_resource method.
                          #   Optional. Defaults to $resource if ommitted.
     ) = @_;
 
