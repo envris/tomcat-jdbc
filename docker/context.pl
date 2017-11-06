@@ -203,7 +203,8 @@ foreach my $resource (@env_resources) {
     push @resource_values, get_resource($resource, \&get_env_var, get_secret(lc($resource), 'pass', $secrets_dir));
 }
 
-#If RESOURCE_DIR is set, also load resources for each subdirectory
+# If RESOURCE_DIR is set, also load resources for each subdirectory
+# This allows for Openshift/Kubernetes Config Maps and Secrets to be used to represent a single resource
 if (exists $ENV{'RESOURCE_DIR'}) {
     # Path to resource directory. No trailing slash!
     my $resource_dir = $ENV{'RESOURCE_DIR'};
@@ -211,6 +212,7 @@ if (exists $ENV{'RESOURCE_DIR'}) {
     opendir(my $dh, $resource_dir) || die "Can't open resource dir $resource_dir : $!";
 
     while( my $resource = readdir $dh ) {
+        # Loop through all subdirectories
         my $path = catfile($resource_dir, $resource);
 
         # Only read subdirectories

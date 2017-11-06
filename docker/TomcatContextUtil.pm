@@ -63,8 +63,8 @@ The default value to return. Omit to treat this secret as non-optional.
 
 =head1 get_resource
 
-Return the data for a JDBC resource.
-Fetch data using the supplied method (e.g. reading environment vars or files).
+Return the data specifying a single JDBC Resource as a hash table, as required by content.xml.template.
+Fetch data using the supplied method (e.g. reading environment vars or files). This allows for consistent processing of resources specified through different mechanisms. 
 
 =head2 PARAMETERS
 
@@ -228,7 +228,7 @@ sub get_secret {
     }
 }
 
-# Return the data for a JDBC resource.
+# Return the data specifying a single JDBC Resource as a hash table, as required by content.xml.template.
 # Fetch data using the supplied method (e.g. reading environment vars or files).
 sub get_resource {
     my (
@@ -250,13 +250,13 @@ sub get_resource {
     if ($url ne '-1') {
         # Detect the driver type
         if ($url =~ /oracle:thin/) {
-            return 'oraclethin';
+            $driver = 'oraclethin';
         } elsif ($url =~ /oracle:oci/) {
-            return 'oracleoci';
+            $driver = 'oracleoci';
         } elsif ($url =~ /mysql/) {
-            return 'mysql';
+            $driver = 'mysql';
         } elsif ($url =~ /microsoft:sqlserver/) {
-            return 'mssql';
+            $driver = 'mssql';
         } else {
             die "Unable to detect driver for JDBC URL $url";
         }
