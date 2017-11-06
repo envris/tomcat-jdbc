@@ -61,6 +61,57 @@ The default value to return. Omit to treat this secret as non-optional.
 
 =back
 
+=head1 get_resource
+Return the data for a JDBC resource.
+Fetch data using the supplied method (e.g. reading environment vars or files).
+
+=head2 PARAMETERS
+
+=over
+
+=item RESOURCE
+
+Name of the resource
+
+=item READ_RESOURCE
+
+Reference to method for fetching data, see get_env_var or get_resource_file
+
+=item PASSWORD
+
+Password for the resource
+
+=item REFERENCE
+
+Reference to resource id/location, to be passed to read_resource method.
+Optional. Defaults to $resource if ommitted.
+
+=back
+
+=head1 get_resource_file
+
+Return the value of a given resource file.
+If it doesn't exist, return the default value or die.
+
+=head2 PARAMETERS
+
+=over
+
+=item PATH
+
+Path of the directory corresponding to the resource
+
+=item NAME
+
+Name of the file to fetch
+
+=item DEFAULT
+
+Default value to return if file doesn't exist
+Omit if you want the program to die if the file doesn't exist
+
+=back
+
 =head1 COPYRIGHT
 
 Copyright 2017 Australian Government Department of the Environment and Energy
@@ -87,7 +138,25 @@ package TomcatContextUtil;
 use strict;
 use warnings;
 use Exporter qw(import);
-our @EXPORT_OK = qw(get_env_var get_secret);
+our @EXPORT_OK = qw(get_env_var get_secret get_resource get_resource_file);
+use File::Slurp qw(read_file);
+use File::Spec::Functions 'catfile';
+
+# JDBC driver class names
+my %driverclasses = (
+    mssql => "com.microsoft.jdbc.sqlserver.SQLServerDriver",
+    mysql => "",
+    oracleoci => "oracle.jdbc.OracleDriver",
+    oraclethin => "oracle.jdbc.OracleDriver",
+);
+
+# JDBC validation queries
+my %validations = (
+    mssql => "select 1",
+    mysql => "select 1",
+    oracleoci => "select 1 from dual",
+    oraclethin => "select 1 from dual",
+);
 
 1;
 
@@ -156,5 +225,94 @@ sub get_secret {
     } else {
         # Else, die
         die "Secret $filename empty or not defined.";
+    }
+}
+
+# Return the data for a JDBC resource.
+# Fetch data using the supplied method (e.g. reading environment vars or files).
+sub get_resource {
+    my (
+        $resource,       # Name of the resource
+        $read_resource,  # Reference to method for fetching data, see get_env_var or get_resource_file
+        $password,       # Password for the resource
+        $reference       # Reference to resource id/location, to be passed to read_resource method.
+                         #   Optional. Defaults to $resource if ommitted.
+    ) = @_;
+
+    if(!defined $ref) {
+        $ref = $resource
+    }
+
+    my $url = $read_resource->($ref, 'URL', '-1');
+    my $driver;
+
+    # If environment variable MYRESOURCE_URL was set
+    if ($url ne '-1') {
+        # Detect the driver type
+        if ($url =~ /oracle:thin/) {
+            return 'oraclethin';
+        } elsif ($url =~ /oracle:oci/) {
+            return 'oracleoci';
+        } elsif ($url =~ /mysql/) {
+            return 'mysql';
+        } elsif ($url =~ /microsoft:sqlserver/) {
+            return 'mssql';
+        } else {
+            die "Unable to detect driver for JDBC URL $url";
+        }
+    } else {
+        # Construct the JDBC URL
+    
+        $driver = lc($read_resource->($ref, 'DRIVER', 'oraclethin'));
+
+        if($driver eq 'oraclethin') {
+            $url = "jdbc:oracle:thin:\@${\$read_resource->($ref, 'HOST')}:${\$read_resource->($ref, 'PORT')}:${\$read_resource->($ref, 'NAME')}";
+        } elsif ($driver eq 'oracleoci') {
+            $url = "jdbc:oracle:oci:\@${\$read_resource->($ref, 'NAME')}";
+        } elsif ($driver eq 'mysql') {
+            $url = "jdbc:mysql://${\$read_resource->($ref, 'HOST')}:${\$read_resource->($ref, 'PORT')}/${\$read_resource->($ref, 'NAME')}";
+        } elsif ($driver eq 'mssql') {
+            $url = "jdbc:microsoft:sqlserver://${\$read_resource->($ref, 'HOST')}:${\$read_resource->($ref, 'PORT')};databaseName=${\$read_resource->($ref, 'NAME')}";
+        } else {
+            die "Unsupported driver specified for resource $resource ($driver)";
+        }
+    }
+
+    return {
+        resource => $read_resource->($ref, 'RESOURCE'),
+        user => $read_resource->($ref, 'USER'),
+        url => $url,
+        driverclass => $driverclasses{$driver},
+        validation => $validations{$driver},
+
+        maxactive => $read_resource->($ref, 'MAXACTIVE', '10'),
+        maxidle => $read_resource->($ref, 'MAXIDLE', '2'),
+        maxwait => $read_resource->($ref, 'MAXWAIT', '2000'),
+        pass => $password
+    }
+}
+
+# Return the value of a given resource file
+# If it doesn't exist, return the default value or die.
+sub get_resource_file {
+    my (
+        $path,    # Path of the directory corresponding to the resource
+        $name,    # Name of the file to fetch
+        $default  # Default value to return if file doesn't exist
+                  #   Omit if you want the program to die if the file doesn't exist
+    ) = @_;
+
+    my $file = catfile($path, lc($name));
+
+    if(-e $file) {
+        # Return the value if it exists
+        chomp(my $response = read_file($file));
+        return $response;
+    } elsif(defined $default) {
+        # Otherwise, return the default if it exists
+        return $default;
+    } else {
+        # Else, die
+        die "Resource file $file does not exist";
     }
 }
