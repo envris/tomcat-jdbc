@@ -140,7 +140,6 @@ use strict;
 use warnings;
 use Exporter qw(import);
 our @EXPORT_OK = qw(get_env_var get_secret get_resource get_resource_file);
-use File::Slurp qw(read_file);
 use File::Spec::Functions 'catfile';
 
 # JDBC driver class names
@@ -307,7 +306,12 @@ sub get_resource_file {
 
     if(-e $file) {
         # Return the value if it exists
-        chomp(my $response = read_file($file));
+
+        chomp(my $response = do {
+            local $/;
+            open(my $fh, '<', $file) || die "Can't open file $file: $!";
+            <$fh>
+        });
         return $response;
     } elsif(defined $default) {
         # Otherwise, return the default if it exists
