@@ -285,9 +285,9 @@ sub get_resource {
         driverclass => $driverclasses{$driver},
         validation => $validations{$driver},
 
-        maxactive => $read_resource->($ref, 'MAXACTIVE', '10'),
+        maxtotal => $read_resource->($ref, 'MAXACTIVE', '10'),
         maxidle => $read_resource->($ref, 'MAXIDLE', '2'),
-        maxwait => $read_resource->($ref, 'MAXWAIT', '2000'),
+        maxwaitmillis => $read_resource->($ref, 'MAXWAIT', '2000'),
         pass => $password
     }
 }
