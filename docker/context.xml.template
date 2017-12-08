@@ -4,9 +4,9 @@
         $OUT .= "    <Resource name=\"jdbc/$r->{'resource'}\"\n";
         $OUT .= "        auth=\"Container\"\n";
         $OUT .= "        type=\"javax.sql.DataSource\"\n";
-        $OUT .= "        maxActive=\"$r->{'maxactive'}\"\n";
+        $OUT .= "        maxTotal=\"$r->{'maxtotal'}\"\n";
         $OUT .= "        maxIdle=\"$r->{'maxidle'}\"\n";
-        $OUT .= "        maxWait=\"$r->{'maxwait'}\"\n";
+        $OUT .= "        maxWaitMillis=\"$r->{'maxwaitmillis'}\"\n";
         $OUT .= "        username=\"$r->{'user'}\"\n";
         $OUT .= "        password=\"$r->{'pass'}\"\n";
         $OUT .= "        driverClassName=\"$r->{'driverclass'}\"\n";
