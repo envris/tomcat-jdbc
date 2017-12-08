@@ -14,7 +14,7 @@ CMD ["run.sh"]
 
 # Copy JARs and WARs
 ONBUILD COPY lib/*.jar lib/
-ONBUILD ADD *.war webapps/
+ONBUILD ADD  app/*.war webapps/
 
 # Allow root group to read all files
 ONBUILD RUN chgrp -R 0 /usr/local/tomcat && \
