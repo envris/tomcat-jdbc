@@ -8,9 +8,13 @@ COPY ["docker/*.p[lm]", "docker/*.template", "docker/run.sh", "/usr/local/bin/"]
 
 CMD ["run.sh"]
 
+# set timezone for logs
+ENV TZ=Australia/Canberra
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Copy JARs and WARs
 ONBUILD COPY lib/*.jar lib/
-ONBUILD ADD *.war webapps/
+ONBUILD ADD app/*.war webapps/
 
 # Allow root group to read all files
 ONBUILD RUN chgrp -R 0 /usr/local/tomcat && \
